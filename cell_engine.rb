@@ -34,7 +34,7 @@ class CellEngine < Wongi::Engine::Network
       .select { |f| f.subject == "neighbors" && f.predicate == "alive" }
       .select { |f| f.object > count }
       .sort_by { |f| f.object }.reverse
-      .each { |f| retract f }
+      .each { |f| puts "retracting: #{f}";retract f }
   end
 
   def self.add_rules engine

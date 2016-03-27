@@ -7,6 +7,7 @@ class Cell
 
   attr_accessor :location, :state
 
+
   def initialize location, state
     self.state = state
     self.location = location
@@ -22,8 +23,8 @@ class Cell
     self.state == ALIVE
   end
 
-  def update cells
-    engine.alive_neighbor_count = alive_neighbor_count(cells)
+  def alive_neighbor_count= alive_neighbors
+    engine.alive_neighbor_count = alive_neighbors
     self.state = engine.alive?
   end
 
@@ -36,20 +37,16 @@ class Cell
   end
 
   def dup
-    super.tap do |obj|
-      obj.engine = self.engine.dup
+    self.class.new(location, state).tap do |obj|
+      obj.engine = CellEngine.new
+      engine.facts.each do |fact|
+        obj.engine << fact
+      end
     end
   end
 
   protected
 
   attr_accessor :engine
-
-  def alive_neighbor_count cells
-    cells
-      .select { |c| location.neighbors.include? c.location }
-      .select(&:alive?)
-      .count
-  end
 end
 

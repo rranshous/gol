@@ -1,93 +1,25 @@
 $: << File.absolute_path('.')
 
 require 'cell'
+require 'printer'
+require 'location'
+require 'collection'
 
 require 'pry'
 
-class Collection
-  extend Forwardable
-  def_delegator :cells, :select
-  def initialize
-    self.cells = []
-  end
-  def << cell
-    cells << cell
-  end
-  def each &blk
-    cells.each { |c| blk.call c }
-  end
-  def cell location
-    cells.detect { |c| c.location == location }
-  end
-  alias_method :[], :cell
-
-  def dup
-    super.tap do |collection|
-      collection.cells = cells.map(&:dup)
-    end
-  end
-
-  protected
-  attr_accessor :cells
-end
-
-class Location
-  attr_reader :x, :y
-  def initialize x, y
-    self.x = x
-    self.y = y
-  end
-  def neighbors
-    [
-      self.class.new(x-1, y),
-      self.class.new(x+1, y),
-
-      self.class.new(x,   y-1),
-      self.class.new(x-1, y-1),
-      self.class.new(x+1, y-1),
-
-      self.class.new(x,   y+1),
-      self.class.new(x-1, y+1),
-      self.class.new(x+1, y+1)
-    ]
-  end
-  def == location
-    self.x == location.x && self.y == location.y
-  end
-  def to_s
-    inspect
-  end
-  def inspect
-    "#<Location x:#{x} y:#{y}>"
-  end
-  protected
-  attr_accessor :x, :y
-end
-
-class Printer
-
-  def initialize cells, size
+class Neighbors
+  def initialize location, cells
     self.cells = cells
-    self.width = self.height = size
+    self.location = location
   end
-
-  def print!
-    puts
-    0.upto(height).each { |y|
-      0.upto(width).each { |x|
-        cell = cells[Location.new(x, y)]
-        if cell.alive?
-          print "[X]"
-        else
-          print "[ ]"
-        end
-      }
-      puts
-    }
+  def alive_count
+    cells
+      .select { |c| location.surrounding.include? c.location }
+      .select(&:alive?)
+      .count
   end
-
-  private
-  attr_accessor :cells, :width, :height
+  protected
+  attr_accessor :location, :cells
 end
 
 make_alive = [[0,0],[0,1],[1,0],[1,1],[2,2],[3,2],[2,3],[3,3]] +\
@@ -109,7 +41,9 @@ gets
 
 loop do
   snapshot = cells.dup
-  cells.each { |c| c.update snapshot }
+  cells.each do |cell|
+    cell.alive_neighbor_count = Neighbors.new(cell.location, snapshot).alive_count
+  end
   printer.print!
   gets
 end
