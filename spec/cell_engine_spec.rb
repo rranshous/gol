@@ -1,5 +1,6 @@
 require 'rspec'
-require_relative '../cell_engine'
+$: << File.absolute_path('.')
+require 'cell_engine'
 
 describe CellEngine do
 
@@ -29,6 +30,13 @@ describe CellEngine do
           before { subject.alive_neighbor_count = 3 }
           it 'is alive' do
             expect(subject.alive?).to eq true
+          end
+        end
+
+        context 'has 1 neighbor' do
+          before { subject.alive_neighbor_count = 1 }
+          it 'is dead' do
+            expect(subject.alive?).to eq false
           end
         end
       end

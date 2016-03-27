@@ -7,7 +7,6 @@ class Cell
 
   attr_accessor :location, :state
 
-
   def initialize location, state
     self.state = state
     self.location = location
@@ -23,8 +22,9 @@ class Cell
     self.state == ALIVE
   end
 
-  def alive_neighbor_count= alive_neighbors
-    engine.alive_neighbor_count = alive_neighbors
+  def alive_neighbor_count= count
+    puts "cell: #{self} :: #{count}"
+    engine.alive_neighbor_count = count
     self.state = engine.alive?
   end
 
