@@ -2,10 +2,10 @@ require 'cell_engine'
 
 class Cell
 
-  ALIVE = 1
-  DEAD = 0
+  ALIVE = true
+  DEAD = false
 
-  attr_accessor :location
+  attr_accessor :location, :state
 
   def initialize location, state
     self.state = state
@@ -18,16 +18,27 @@ class Cell
   end
 
   def update cells
+    if alive?
+      binding.pry
+    end
     engine.snapshot!
-    engine.alive_neighbor_count = alive_neighbor_count
+    engine.alive_neighbor_count = alive_neighbor_count(cells)
     self.state = engine.alive?
   end
 
-  private
+  def to_s
+    inspect
+  end
 
-  attr_accessor :state, :engine
+  def inspect
+    "#<Cell location:#{location} alive?:#{alive?}>"
+  end
 
-  def alive_neighbor_count
+  protected
+
+  attr_accessor :engine
+
+  def alive_neighbor_count cells
     cells
       .select { |c| location.neighbors.include? c.location }
       .select(&:alive?)

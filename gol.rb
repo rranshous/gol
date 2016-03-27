@@ -5,18 +5,23 @@ require 'cell'
 require 'pry'
 
 class Collection
+  extend Forwardable
+  def_delegator :cells, :select
   def initialize
-    self.cells = {}
+    self.cells = []
   end
   def << cell
-    cells[cell.location] = cell
+    #puts "Collection (<<): #{cell}"
+    cells << cell
   end
   def each &blk
     cells.each { |c| blk.call c }
   end
-  def [] location
-    cell(location).alive?
+  def cell location
+    #puts "Collection (cell): #{location}"
+    cells.detect { |c| c.location == location }
   end
+  alias_method :[], :cell
   def dup
     self.class.new.tap do |collection|
       collection.cells = cells.map { |c| c.dup }
@@ -24,15 +29,12 @@ class Collection
   end
   protected
   attr_accessor :cells
-  def cell location
-    cells.detect { |c| c.location == location }
-  end
 end
 
 class Location
   attr_accessor :x, :y
   def initialize x, y
-    self.x = y
+    self.x = x
     self.y = y
   end
   def neighbors
@@ -52,6 +54,12 @@ class Location
   def == location
     self.x == location.x && self.y == location.y
   end
+  def to_s
+    inspect
+  end
+  def inspect
+    "#<Location x:#{x} y:#{y}>"
+  end
 end
 
 class Printer
@@ -61,37 +69,37 @@ class Printer
     self.width = self.height = size
   end
 
-  def print
-    self.each_cell do |x, y, cell|
-      if cell.alive?
-        print "[X]"
-      else
-        print "[ ]"
-      end
-    end
+  def print!
+    puts
+    0.upto(height).each { |y|
+      0.upto(width).each { |x|
+        cell = cells[Location.new(x, y)]
+        if cell.alive?
+          print "[X]"
+        else
+          print "[ ]"
+        end
+      }
+      puts
+    }
   end
 
   private
-
   attr_accessor :cells, :width, :height
-
-  def each_cell &blk
-    0.upto(height).each { |y| 0.upto(width).each { |x|
-      blk.call x, y, cells[[x, y]]
-    } }
-  end
 end
 
 board_size = 10
 cells = Collection.new
 0.upto(board_size).each {|y| 0.upto(board_size) { |x|
+  #puts "gol: creating cell @ #{x}:#{y}"
   location = Location.new x, y
   cells << Cell.new(location, Cell::DEAD)
 } }
 printer = Printer.new cells, board_size
 
 loop do
-  printer.print
+  binding.pry
+  printer.print!
   snapshot = cells.dup
   cells.each { |c| c.update snapshot }
 end

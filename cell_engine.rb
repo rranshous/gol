@@ -1,4 +1,5 @@
 require 'wongi-engine'
+require 'patch'
 
 class CellEngine < Wongi::Engine::Network
 
@@ -9,6 +10,7 @@ class CellEngine < Wongi::Engine::Network
 
   def alive_neighbor_count= count
     clear!
+    binding.pry if count > 0
     self << ["neighbor", "alive", count]
   end
 
@@ -19,7 +21,7 @@ class CellEngine < Wongi::Engine::Network
   private
 
   def clear!
-    rules.each { |r| self.retract r }
+    facts.each { |r| retract r }
   end
 
   def self.add_rules engine
@@ -29,6 +31,7 @@ class CellEngine < Wongi::Engine::Network
     engine.rule "infered counts" do
       forall { has "neighbors", "alive", :Count }
       make { action { |token|
+        puts "adding neighbors"
         1.upto(token[:Count]) { |i| gen "neighbors", "alive", i }
       } }
     end
@@ -87,11 +90,8 @@ class CellEngine < Wongi::Engine::Network
         #  as if by reproduction.
       }
       make {
-        retract "me", "alive", true
+        action { retract "me", "alive", true }
       }
-    end
-    engine.rule "dead?" do
-      forall { missing "me", "alive", true }
     end
   end
 end
