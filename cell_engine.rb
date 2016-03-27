@@ -24,22 +24,31 @@ class CellEngine < Wongi::Engine::Network
   end
 
   def snapshot!
-    puts 'snapshotting'
     super
-    puts 'done snapshotting'
   end
 
   private
 
   def clear_to! count
-    puts "clearing_to! #{count}"
     facts
       .select { |f| f.subject == "neighbors" && f.predicate == "alive" }
+      .select { |f| f.object > count }
       .sort_by { |f| f.object }.reverse
-      .each { |f| puts "retracting: #{f}"; retract f }
+      .each { |f| retract f }
   end
 
   def self.add_rules engine
+
+    # GOL rules from wikipedia:
+    # Any live cell with fewer than two live neighbours dies,
+    #  as if caused by under-population.
+    # Any live cell with two or three live neighbours lives on
+    #  to the next generation.
+    # Any live cell with more than three live neighbours dies,
+    #  as if by over-population.
+    # Any dead cell with exactly three live neighbours becomes a live cell,
+    #  as if by reproduction.
+    #
     # fact format
     # [ "neighbors", "alive", 3 ]
     # if there are three than there are two, one, etc
@@ -54,46 +63,29 @@ class CellEngine < Wongi::Engine::Network
 
     engine.rule "alive?" do
       forall { has "me", "alive", true }
-      make { action { puts "is alive" } }
+      #make { action { puts "is alive" } }
     end
 
     engine.rule "become_alive?" do
       forall {
-        # Any live cell with fewer than two live neighbours dies,
-        #  as if caused by under-population.
-        # Any live cell with two or three live neighbours lives on
-        #  to the next generation.
-        # Any live cell with more than three live neighbours dies,
-        #  as if by over-population.
-        # Any dead cell with exactly three live neighbours becomes a live cell,
-        #  as if by reproduction.
         has "neighbors", "alive", 3
         missing "neighbors", "alive", 4
-        missing "me", "alive", true, time: -1 # KILLING IT
+        #missing "me", "alive", true, time: -1 # KILLING IT
       }
       make {
-        action { puts "becoming alive" }
+        #action { puts "becoming alive" }
         gen "me", "alive", true
       }
     end
-    return
 
     engine.rule "become_dead?" do
       forall {
-        # Any live cell with fewer than two live neighbours dies,
-        #  as if caused by under-population.
         missing "neighbors", "alive", 2
-        # Any live cell with two or three live neighbours lives on
-        #  to the next generation.
-        # Any live cell with more than three live neighbours dies,
-        #  as if by over-population.
         has "neighbors", "alive", 4
-        # Any dead cell with exactly three live neighbours becomes a live cell,
-        #  as if by reproduction.
-        has "me", "alive", true, time: -1
+        #has "me", "alive", true, time: -1 # possibly killing it
       }
       make {
-        action { puts "becoming dead" }
+        #action { puts "becoming dead" }
         action { retract ["me", "alive", true] }
       }
     end
