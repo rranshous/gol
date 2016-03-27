@@ -10,8 +10,7 @@ class CellEngine < Wongi::Engine::Network
 
   def alive_neighbor_count= count
     clear!
-    binding.pry if count > 0
-    self << ["neighbor", "alive", count]
+    self << ["neighbors", "alive", count]
   end
 
   def alive?
@@ -31,10 +30,12 @@ class CellEngine < Wongi::Engine::Network
     engine.rule "infered counts" do
       forall { has "neighbors", "alive", :Count }
       make { action { |token|
-        puts "adding neighbors"
-        1.upto(token[:Count]) { |i| gen "neighbors", "alive", i }
+        if token[:Count] > 1
+          self << ["neighbors", "alive", token[:Count] - 1]
+        end
       } }
     end
+
     # add rule so we'll know if we are alive
     engine.rule "stay_alive?" do
       forall {
@@ -51,11 +52,14 @@ class CellEngine < Wongi::Engine::Network
         missing "neighbors", "alive", 4
         # Any dead cell with exactly three live neighbours becomes a live cell,
         #  as if by reproduction.
+        #
+        # if it was not already alive than we shouldn't stay alive
+        has "me", "alive", "true"
       }
       make {
-        gen "me", "alive", true
       }
     end
+
     engine.rule "become_alive?" do
       forall {
         # Any live cell with fewer than two live neighbours dies,
@@ -68,14 +72,18 @@ class CellEngine < Wongi::Engine::Network
         #  as if by reproduction.
         has "neighbors", "alive", 3
         missing "neighbors", "alive", 4
+        missing "me", "alive", "true"
       }
       make {
         gen "me", "alive", true
+        #action { puts "becoming alive" }
       }
     end
+
     engine.rule "alive?" do
       forall { has "me", "alive", true }
     end
+
     engine.rule "become_dead?" do
       forall {
         # Any live cell with fewer than two live neighbours dies,
@@ -90,7 +98,8 @@ class CellEngine < Wongi::Engine::Network
         #  as if by reproduction.
       }
       make {
-        action { retract "me", "alive", true }
+        action { retract ["me", "alive", true] }
+        #action { puts "becoming dead" }
       }
     end
   end

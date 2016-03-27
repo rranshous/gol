@@ -32,7 +32,7 @@ class Collection
 end
 
 class Location
-  attr_accessor :x, :y
+  attr_reader :x, :y
   def initialize x, y
     self.x = x
     self.y = y
@@ -42,11 +42,11 @@ class Location
       self.class.new(x-1, y),
       self.class.new(x+1, y),
 
-      self.class.new(x, y-1),
+      self.class.new(x,   y-1),
       self.class.new(x-1, y-1),
       self.class.new(x+1, y-1),
 
-      self.class.new(x, y+1),
+      self.class.new(x,   y+1),
       self.class.new(x-1, y+1),
       self.class.new(x+1, y+1)
     ]
@@ -60,6 +60,8 @@ class Location
   def inspect
     "#<Location x:#{x} y:#{y}>"
   end
+  protected
+  attr_accessor :x, :y
 end
 
 class Printer
@@ -94,12 +96,17 @@ cells = Collection.new
   #puts "gol: creating cell @ #{x}:#{y}"
   location = Location.new x, y
   cells << Cell.new(location, Cell::DEAD)
+  if 4 < x  && x < 8
+    cells.cell(location).state = true
+  end
 } }
 printer = Printer.new cells, board_size
+printer.print!
+gets
 
 loop do
-  binding.pry
-  printer.print!
   snapshot = cells.dup
   cells.each { |c| c.update snapshot }
+  printer.print!
+  gets
 end

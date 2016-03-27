@@ -18,12 +18,10 @@ class Cell
   end
 
   def update cells
-    if alive?
-      binding.pry
-    end
     engine.snapshot!
     engine.alive_neighbor_count = alive_neighbor_count(cells)
     self.state = engine.alive?
+    #binding.pry if self.state == true
   end
 
   def to_s
