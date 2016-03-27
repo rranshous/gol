@@ -9,8 +9,12 @@ class CellEngine < Wongi::Engine::Network
   end
 
   def alive_neighbor_count= count
+    engine.snapshot! rescue nil
     clear_to! count
-    self << ["neighbors", "alive", count]
+  end
+
+  def set_alive
+    self << ["me", "alive", true]
   end
 
   def alive?
@@ -20,13 +24,12 @@ class CellEngine < Wongi::Engine::Network
   private
 
   def clear_to! count
-    facts.each { |r| retract r }
-    #facts.each do |r|
-    #  if r.subject == "neighbors" && r.predicate == "alive" && r.object > count
-    #    puts "retracting: #{r.object}"
-    #    retract r
-    #  end
-    #end
+    facts.each do |r|
+      if r.subject == "neighbors" && r.predicate == "alive" && r.object > count
+        puts "retracting: #{r.object}"
+        retract r
+      end
+    end
   end
 
   def self.add_rules engine

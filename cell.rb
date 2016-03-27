@@ -13,16 +13,19 @@ class Cell
     self.engine = CellEngine.new
   end
 
+  def set_alive
+    self.engine.set_alive
+    self.state = ALIVE
+  end
+
   def alive?
     self.state == ALIVE
   end
 
   def update cells
-    engine.snapshot!
     puts "cell: #{location} :: #{alive_neighbor_count(cells)}"
     engine.alive_neighbor_count = alive_neighbor_count(cells)
     self.state = engine.alive?
-    #binding.pry if self.state == true
   end
 
   def to_s

@@ -95,11 +95,11 @@ board_size = 3
 cells = Collection.new
 0.upto(board_size).each {|y| 0.upto(board_size) { |x|
   location = Location.new x, y
+  cells << cell = Cell.new(location, Cell::DEAD)
+
   if make_alive.include?([x,y])
-    puts "alive: #{x}:#{y}"
-    cells << Cell.new(location, Cell::ALIVE)
-  else
-    cells << Cell.new(location, Cell::DEAD)
+    puts "gol [#{cell}] alive: #{x}:#{y}"
+    cell.set_alive
   end
 } }
 printer = Printer.new cells, board_size
