@@ -23,7 +23,6 @@ class Cell
   end
 
   def update cells
-    puts "cell: #{location} :: #{alive_neighbor_count(cells)}"
     engine.alive_neighbor_count = alive_neighbor_count(cells)
     self.state = engine.alive?
   end

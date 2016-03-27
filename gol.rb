@@ -90,10 +90,11 @@ class Printer
   attr_accessor :cells, :width, :height
 end
 
-make_alive = [[0,0],[0,1],[1,0],[1,1],[2,2],[3,2],[2,3],[3,3]]
-board_size = 3
+make_alive = [[0,0],[0,1],[1,0],[1,1],[2,2],[3,2],[2,3],[3,3]] +\
+             [[4,3],[9,6],[9,7],[8,5]]
+BOARD_SIZE = 10
 cells = Collection.new
-0.upto(board_size).each {|y| 0.upto(board_size) { |x|
+0.upto(BOARD_SIZE).each {|y| 0.upto(BOARD_SIZE) { |x|
   location = Location.new x, y
   cells << cell = Cell.new(location, Cell::DEAD)
 
@@ -102,7 +103,7 @@ cells = Collection.new
     cell.set_alive
   end
 } }
-printer = Printer.new cells, board_size
+printer = Printer.new cells, BOARD_SIZE
 printer.print!
 gets
 
@@ -111,5 +112,4 @@ loop do
   cells.each { |c| c.update snapshot }
   printer.print!
   gets
-  sleep 0.2
 end
