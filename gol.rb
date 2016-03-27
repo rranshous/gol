@@ -11,22 +11,22 @@ class Collection
     self.cells = []
   end
   def << cell
-    #puts "Collection (<<): #{cell}"
     cells << cell
   end
   def each &blk
     cells.each { |c| blk.call c }
   end
   def cell location
-    #puts "Collection (cell): #{location}"
     cells.detect { |c| c.location == location }
   end
   alias_method :[], :cell
+
   def dup
-    self.class.new.tap do |collection|
-      collection.cells = cells.map { |c| c.dup }
+    super.tap do |collection|
+      collection.cells = cells.map(&:dup)
     end
   end
+
   protected
   attr_accessor :cells
 end

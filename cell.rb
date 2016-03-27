@@ -10,6 +10,7 @@ class Cell
   def initialize location, state
     self.state = state
     self.location = location
+    binding.pry
     self.engine = CellEngine.new
   end
 
@@ -24,6 +25,7 @@ class Cell
 
   def update cells
     puts "cell: #{location} :: #{alive_neighbor_count(cells)}"
+    engine.snapshot!
     engine.alive_neighbor_count = alive_neighbor_count(cells)
     self.state = engine.alive?
   end
@@ -34,6 +36,12 @@ class Cell
 
   def inspect
     "#<Cell location:#{location} alive?:#{alive?}>"
+  end
+
+  def dup
+    super.tap do |obj|
+      obj.engine = self.engine.dup
+    end
   end
 
   protected

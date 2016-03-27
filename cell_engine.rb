@@ -9,8 +9,8 @@ class CellEngine < Wongi::Engine::Network
   end
 
   def alive_neighbor_count= count
-    engine.snapshot! rescue nil
     clear_to! count
+    self << ["neighbors", "alive", count]
   end
 
   def set_alive
@@ -24,6 +24,7 @@ class CellEngine < Wongi::Engine::Network
   private
 
   def clear_to! count
+    #facts.each { |f| retract f }
     facts.each do |r|
       if r.subject == "neighbors" && r.predicate == "alive" && r.object > count
         puts "retracting: #{r.object}"
@@ -52,10 +53,11 @@ class CellEngine < Wongi::Engine::Network
         #  as if caused by under-population.
         # Any live cell with two or three live neighbours lives on
         #  to the next generation.
-        any {
-          option { has "neighbors", "alive", 2 }
-          option { has "neighbors", "alive", 3 }
-        }
+        has "neighbors", "alive", 2
+        #any {
+        #  option { has "neighbors", "alive", 2 }
+        #  option { has "neighbors", "alive", 3 }
+        #}
         # Any live cell with more than three live neighbours dies,
         #  as if by over-population.
         missing "neighbors", "alive", 4
@@ -66,6 +68,7 @@ class CellEngine < Wongi::Engine::Network
         has "me", "alive", true, time: -1
       }
       make {
+        gen "me", "alive", true
         action { puts "staying alive" }
       }
     end
