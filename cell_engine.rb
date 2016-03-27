@@ -1,5 +1,5 @@
 require 'wongi-engine'
-require 'patch'
+#require 'patch'
 
 class CellEngine < Wongi::Engine::Network
 
@@ -9,11 +9,13 @@ class CellEngine < Wongi::Engine::Network
   end
 
   def alive_neighbor_count= count
+    snapshot!
     clear_to! count
     self << ["neighbors", "alive", count]
   end
 
   def set_alive
+    snapshot!
     self << ["me", "alive", true]
   end
 
@@ -21,16 +23,20 @@ class CellEngine < Wongi::Engine::Network
     self.productions["alive?"].tokens.any?
   end
 
+  def snapshot!
+    puts 'snapshotting'
+    super
+    puts 'done snapshotting'
+  end
+
   private
 
   def clear_to! count
-    #facts.each { |f| retract f }
-    facts.each do |r|
-      if r.subject == "neighbors" && r.predicate == "alive" && r.object > count
-        puts "retracting: #{r.object}"
-        retract r
-      end
-    end
+    puts "clearing_to! #{count}"
+    facts
+      .select { |f| f.subject == "neighbors" && f.predicate == "alive" }
+      .sort_by { |f| f.object }.reverse
+      .each { |f| puts "retracting: #{f}"; retract f }
   end
 
   def self.add_rules engine
@@ -46,31 +52,9 @@ class CellEngine < Wongi::Engine::Network
       } }
     end
 
-    # add rule so we'll know if we are alive
-    engine.rule "stay_alive?" do
-      forall {
-        # Any live cell with fewer than two live neighbours dies,
-        #  as if caused by under-population.
-        # Any live cell with two or three live neighbours lives on
-        #  to the next generation.
-        has "neighbors", "alive", 2
-        #any {
-        #  option { has "neighbors", "alive", 2 }
-        #  option { has "neighbors", "alive", 3 }
-        #}
-        # Any live cell with more than three live neighbours dies,
-        #  as if by over-population.
-        missing "neighbors", "alive", 4
-        # Any dead cell with exactly three live neighbours becomes a live cell,
-        #  as if by reproduction.
-        #
-        # if it was not already alive than we shouldn't stay alive
-        has "me", "alive", true, time: -1
-      }
-      make {
-        gen "me", "alive", true
-        action { puts "staying alive" }
-      }
+    engine.rule "alive?" do
+      forall { has "me", "alive", true }
+      make { action { puts "is alive" } }
     end
 
     engine.rule "become_alive?" do
@@ -85,18 +69,14 @@ class CellEngine < Wongi::Engine::Network
         #  as if by reproduction.
         has "neighbors", "alive", 3
         missing "neighbors", "alive", 4
-        missing "me", "alive", true, time: -1
+        missing "me", "alive", true, time: -1 # KILLING IT
       }
       make {
-        gen "me", "alive", true
         action { puts "becoming alive" }
+        gen "me", "alive", true
       }
     end
-
-    engine.rule "alive?" do
-      forall { has "me", "alive", true }
-      make { action { puts "is alive" } }
-    end
+    return
 
     engine.rule "become_dead?" do
       forall {
@@ -110,11 +90,11 @@ class CellEngine < Wongi::Engine::Network
         has "neighbors", "alive", 4
         # Any dead cell with exactly three live neighbours becomes a live cell,
         #  as if by reproduction.
-        has "me", "live", true, time: -1
+        has "me", "alive", true, time: -1
       }
       make {
-        action { retract ["me", "alive", true] }
         action { puts "becoming dead" }
+        action { retract ["me", "alive", true] }
       }
     end
   end
