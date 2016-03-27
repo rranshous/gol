@@ -9,7 +9,7 @@ class CellEngine < Wongi::Engine::Network
   end
 
   def alive_neighbor_count= count
-    clear!
+    clear_to! count
     self << ["neighbors", "alive", count]
   end
 
@@ -19,8 +19,14 @@ class CellEngine < Wongi::Engine::Network
 
   private
 
-  def clear!
+  def clear_to! count
     facts.each { |r| retract r }
+    #facts.each do |r|
+    #  if r.subject == "neighbors" && r.predicate == "alive" && r.object > count
+    #    puts "retracting: #{r.object}"
+    #    retract r
+    #  end
+    #end
   end
 
   def self.add_rules engine
@@ -54,9 +60,10 @@ class CellEngine < Wongi::Engine::Network
         #  as if by reproduction.
         #
         # if it was not already alive than we shouldn't stay alive
-        has "me", "alive", "true"
+        has "me", "alive", true, time: -1
       }
       make {
+        action { puts "staying alive" }
       }
     end
 
@@ -72,16 +79,17 @@ class CellEngine < Wongi::Engine::Network
         #  as if by reproduction.
         has "neighbors", "alive", 3
         missing "neighbors", "alive", 4
-        missing "me", "alive", "true"
+        missing "me", "alive", true, time: -1
       }
       make {
         gen "me", "alive", true
-        #action { puts "becoming alive" }
+        action { puts "becoming alive" }
       }
     end
 
     engine.rule "alive?" do
       forall { has "me", "alive", true }
+      make { action { puts "is alive" } }
     end
 
     engine.rule "become_dead?" do
@@ -96,10 +104,11 @@ class CellEngine < Wongi::Engine::Network
         has "neighbors", "alive", 4
         # Any dead cell with exactly three live neighbours becomes a live cell,
         #  as if by reproduction.
+        has "me", "live", true, time: -1
       }
       make {
         action { retract ["me", "alive", true] }
-        #action { puts "becoming dead" }
+        action { puts "becoming dead" }
       }
     end
   end

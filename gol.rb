@@ -90,14 +90,16 @@ class Printer
   attr_accessor :cells, :width, :height
 end
 
-board_size = 10
+make_alive = [[0,0],[0,1],[1,0],[1,1],[2,2],[3,2],[2,3],[3,3]]
+board_size = 3
 cells = Collection.new
 0.upto(board_size).each {|y| 0.upto(board_size) { |x|
-  #puts "gol: creating cell @ #{x}:#{y}"
   location = Location.new x, y
-  cells << Cell.new(location, Cell::DEAD)
-  if 4 < x  && x < 8
-    cells.cell(location).state = true
+  if make_alive.include?([x,y])
+    puts "alive: #{x}:#{y}"
+    cells << Cell.new(location, Cell::ALIVE)
+  else
+    cells << Cell.new(location, Cell::DEAD)
   end
 } }
 printer = Printer.new cells, board_size
@@ -109,4 +111,5 @@ loop do
   cells.each { |c| c.update snapshot }
   printer.print!
   gets
+  sleep 0.2
 end

@@ -19,6 +19,7 @@ class Cell
 
   def update cells
     engine.snapshot!
+    puts "cell: #{location} :: #{alive_neighbor_count(cells)}"
     engine.alive_neighbor_count = alive_neighbor_count(cells)
     self.state = engine.alive?
     #binding.pry if self.state == true
